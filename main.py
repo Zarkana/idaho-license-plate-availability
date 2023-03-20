@@ -1,17 +1,16 @@
 import requests
-import random
 import json
 from playwright.sync_api import Playwright, sync_playwright
 
-def fetch_random_word(words):
+def fetch_words(num_words):
     """
-    Fetches a random word using Datamuse API and appends it to the given list.
+    Fetches a list of random words using Datamuse API.
     """
-    url = "https://api.datamuse.com/words?sp=*"
+    url = f"https://api.datamuse.com/words?sp=*&max=1000"
     response = requests.get(url)
     data = response.json()
-    word = random.choice(data)['word']
-    return word
+    words = [word['word'] for word in data][:num_words]
+    return words
 
 with sync_playwright() as playwright:
     browser = playwright.chromium.launch(headless=False)
@@ -27,28 +26,29 @@ with sync_playwright() as playwright:
     except FileNotFoundError:
         words = []
 
-    # Set the number of times to fetch and insert a random word
-    num_iterations = 15
+    # Set the number of words to fetch and insert
+    num_words = 5
 
     # Initialize a variable to store whether the element exists
     plate_not_available = False
 
-    for i in range(num_iterations):
+    # Fetch the list of words to insert
+    new_words = fetch_words(num_words)
+
+    for word in new_words:
         plate_input = page.locator('input[type="text"]')
-        word = fetch_random_word(words)
         plate_input.fill(word)
 
         page.click("text=Generate Preview")
 
-        page.wait_for_timeout(2000)
+        page.wait_for_timeout(1000)
 
         page.click("text=Check Availability")
         
         # Check if the error element exists
-        page.wait_for_timeout(2000)
+        page.wait_for_timeout(1000)
         
-        success_element = page.locator('.glyphicon.glyphicon-ok.text-success')
-        plate_available = success_element.is_visible()
+        plate_available = page.locator("#available").is_visible()
 
         if plate_available:
             words.append(word)
@@ -65,6 +65,3 @@ with sync_playwright() as playwright:
 # Append the new list of random words and error status to the existing JSON file.
 with open('available_words.json', 'w') as f:
     json.dump(words, f, indent=4)
-
-
-
