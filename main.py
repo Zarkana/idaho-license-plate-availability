@@ -29,7 +29,7 @@ with sync_playwright() as playwright:
         words = {"available": [], "unavailable": []}
 
     # Set the number of words to fetch and insert
-    num_words = 15
+    num_words = 20
 
     # Initialize a variable to store whether the element exists
     plate_not_available = False
@@ -38,39 +38,36 @@ with sync_playwright() as playwright:
     new_words = fetch_words(num_words)
 
     for word in new_words:
-        plate_input = page.locator('input[type="text"]')
-        plate_input.fill(word)
+        if word not in words["available"] and word not in words["unavailable"]:
+            plate_input = page.locator('input[type="text"]')
+            plate_input.fill(word)
 
-        page.wait_for_load_state()
+            page.wait_for_load_state()
 
-        page.click("text=Generate Preview")
+            page.click("text=Generate Preview")
 
-        page.wait_for_load_state()
-        page.wait_for_timeout(2000)
+            page.wait_for_load_state()
+            page.wait_for_timeout(2000)
 
-        page.click("text=Check Availability")
-        
-        page.wait_for_load_state()
-        page.wait_for_timeout(2000)
+            page.click("text=Check Availability")
+            
+            page.wait_for_load_state()
+            page.wait_for_timeout(2000)
 
-        plate_available = page.locator("#available").is_visible()
+            plate_available = page.locator("#available").is_visible()
 
-        if plate_available:
-            if word not in words["available"]:
+            if plate_available:
                 words["available"].append(word)
                 print(f"{word} is available")
+                try_a_new_plate_button = page.locator("#available").get_by_text("Try a New Plate Message")
             else:
-                print(f"{word} was already in the list of available words")
-            try_a_new_plate_button = page.locator("#available").get_by_text("Try a New Plate Message")
-        else:
-            if word not in words["unavailable"]:
                 words["unavailable"].append(word)
                 print(f"{word} is unavailable")
-            else:
-                print(f"{word} was already in the list of unavailable words")
-            try_a_new_plate_button = page.locator("#unavailable").get_by_text("Try a New Plate Message")
+                try_a_new_plate_button = page.locator("#unavailable").get_by_text("Try a New Plate Message")
 
-        try_a_new_plate_button.click()
+            try_a_new_plate_button.click()
+        else:
+            print(f"{word} was already in the list of license plates")
 
     browser.close()
 
