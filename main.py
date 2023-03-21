@@ -2,13 +2,13 @@ import json
 from playwright.sync_api import Playwright, sync_playwright
 import os
 
-def fetch_words(num_words):
+def fetch_words():
     """
     Reads a list of words from a JSON file.
     """
     with open('english_words.json', 'r') as f:
         words = json.load(f)
-    return words[:num_words]
+    return words
 
 
 with sync_playwright() as playwright:
@@ -25,16 +25,10 @@ with sync_playwright() as playwright:
     else:
         words = {"available": [], "unavailable": []}
 
-    # Set the number of words to fetch and insert
-    num_words = 20
-
-    # Initialize a variable to store whether the element exists
-    plate_not_available = False
-
     # Fetch the list of words to insert
-    new_words = fetch_words(num_words)
+    words_to_check = fetch_words()
 
-    for word in new_words:
+    for word in words_to_check:
         if word not in words["available"] and word not in words["unavailable"]:
             plate_input = page.locator('input[type="text"]')
             plate_input.fill(word)
@@ -66,8 +60,8 @@ with sync_playwright() as playwright:
         else:
             print(f"{word} was already in the list of license plates")
 
-    browser.close()
+        # Write the current list of words and error status to the file after each word check
+        with open('license_plates.json', 'w') as f:
+            json.dump(words, f, indent=4)
 
-# Append the new list of random words and error status to the existing JSON file.
-with open('license_plates.json', 'w') as f:
-    json.dump(words, f, indent=4)
+    browser.close()
