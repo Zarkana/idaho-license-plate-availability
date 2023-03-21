@@ -1,18 +1,15 @@
-import random
-import requests
 import json
 from playwright.sync_api import Playwright, sync_playwright
 import os
 
 def fetch_words(num_words):
     """
-    Fetches a list of words ordered by length using Datamuse API.
+    Reads a list of words from a JSON file.
     """
-    url = f"https://api.datamuse.com/words?sp=*&max=1000&orderby=length"
-    response = requests.get(url)
-    data = response.json()
-    words = [word['word'] for word in data]
+    with open('english_words.json', 'r') as f:
+        words = json.load(f)
     return words[:num_words]
+
 
 with sync_playwright() as playwright:
     browser = playwright.chromium.launch(headless=False)
