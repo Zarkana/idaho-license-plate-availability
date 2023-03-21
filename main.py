@@ -1,11 +1,10 @@
 import json
-from playwright.sync_api import Playwright, sync_playwright
 import os
+from playwright.sync_api import Playwright, sync_playwright
+
 
 def fetch_words():
-    """
-    Reads a list of words from a JSON file.
-    """
+    """Reads a list of words from a JSON file."""
     with open('english_words.json', 'r') as f:
         words = json.load(f)
     return words
